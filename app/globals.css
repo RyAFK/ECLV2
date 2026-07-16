@@ -1,26 +1,127 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --background: #f7f5f1;
+  --surface: #ffffff;
+  --surface-soft: #f1efeb;
+  --sidebar: #171717;
+  --sidebar-soft: #232323;
+  --primary: #1e1e1e;
+  --primary-hover: #343434;
+  --accent: #b69a62;
+  --accent-soft: #e8decb;
+  --text: #202020;
+  --text-secondary: #6c6a66;
+  --border: #e4e0d8;
+  --success: #5f806b;
+  --success-soft: #e7ede8;
+  --warning: #c08b48;
+  --warning-soft: #f3e6d3;
+  --danger: #b45f5f;
+  --danger-soft: #f3e2e2;
+  --information: #667f91;
+  --information-soft: #e6ecef;
 }
 
 @theme inline {
   --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-surface: var(--surface);
+  --color-surface-soft: var(--surface-soft);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-soft: var(--sidebar-soft);
+  --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
+  --color-accent: var(--accent);
+  --color-accent-soft: var(--accent-soft);
+  --color-text: var(--text);
+  --color-text-secondary: var(--text-secondary);
+  --color-border: var(--border);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-information: var(--information);
+  --color-information-soft: var(--information-soft);
+  --font-serif: var(--font-playfair);
+  --font-sans: var(--font-inter);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  border-color: var(--border);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text);
+  font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-serif-display {
+  font-family: var(--font-playfair), Georgia, serif;
+}
+
+::selection {
+  background: var(--accent-soft);
+  color: var(--text);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 8px;
+}
+
+@keyframes eclFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.animate-ecl-fade-in {
+  animation: eclFadeIn 0.25s ease-out;
+}
+
+@keyframes eclRing {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.9;
+  }
+  70% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1.6);
+    opacity: 0;
+  }
+}
+.animate-ecl-ring {
+  animation: eclRing 1.8s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
 }
