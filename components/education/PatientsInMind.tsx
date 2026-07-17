@@ -10,7 +10,10 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { PatientNoteModal } from "@/components/education/PatientNoteModal";
 import { usePatientNotes } from "@/lib/clinical-education-storage";
+import { getClinicalModule } from "@/data/clinical-education";
+import { logEducationEvent } from "@/lib/education-analytics";
 import { cn } from "@/lib/utils";
+import type { PatientInMindNote } from "@/lib/types";
 
 export function PatientsInMind() {
   const { notes, addNote, toggleDiscussion, markConverted, deleteNote } = usePatientNotes();
@@ -18,10 +21,16 @@ export function PatientsInMind() {
   const router = useRouter();
   const [addOpen, setAddOpen] = useState(false);
 
-  function handleConvert(id: string) {
-    markConverted(id);
+  function handleConvert(note: PatientInMindNote) {
+    markConverted(note.id);
     showToast({ variant: "success", title: "Redirecting to referral form", description: "Demo simulation — patient details are not pre-filled." });
-    router.push("/partner/refer");
+    const sourceModule = note.moduleId ? getClinicalModule(note.moduleId) : undefined;
+    if (sourceModule) {
+      logEducationEvent("education_refer_patient_clicked", sourceModule.id, sourceModule.title, sourceModule.pathwayId);
+      router.push(`/partner/refer?pathway=${encodeURIComponent(sourceModule.pathwayId)}`);
+    } else {
+      router.push("/partner/refer");
+    }
   }
 
   return (
@@ -77,7 +86,7 @@ export function PatientsInMind() {
                     {n.markedForDiscussion ? "Marked for discussion" : "Mark for discussion"}
                   </Button>
                   {!n.convertedToReferral && (
-                    <Button size="sm" onClick={() => handleConvert(n.id)}>
+                    <Button size="sm" onClick={() => handleConvert(n)}>
                       Convert to referral
                     </Button>
                   )}

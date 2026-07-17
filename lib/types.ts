@@ -246,6 +246,7 @@ export interface ClinicalModule {
   summary: string;
   duration: string;
   icon: string;
+  pathwayId: PathwayId;
   openingQuestion: string;
   openingFollowUp: string;
   keyIndicators: string[];
@@ -260,4 +261,24 @@ export interface ClinicalModule {
     title: string;
     description: string;
   };
+  /** Non-diagnostic intro shown by the Referral Assistant when arriving from this module. */
+  assistantIntro: string;
+  /** Shown alongside the assistant intro for modules where urgent pathways must stay separate from this tool. */
+  safetyNote?: string;
+}
+
+/** Analytics event names for the Clinical Education referral-generation funnel. */
+export type EducationAnalyticsEvent =
+  | "education_module_opened"
+  | "education_module_completed"
+  | "education_discuss_case_clicked"
+  | "education_refer_patient_clicked"
+  | "education_guide_downloaded";
+
+export interface EducationAnalyticsEntry {
+  event: EducationAnalyticsEvent;
+  moduleId: string;
+  moduleTitle: string;
+  pathway: string;
+  timestamp: string;
 }

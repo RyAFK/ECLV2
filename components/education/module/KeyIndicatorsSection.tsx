@@ -4,7 +4,17 @@ import { CircleCheck } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Button, LinkButton } from "@/components/ui/Button";
 
-export function KeyIndicatorsSection({ indicators, onDiscuss }: { indicators: string[]; onDiscuss: () => void }) {
+export function KeyIndicatorsSection({
+  indicators,
+  onDiscuss,
+  referHref,
+  onReferClick,
+}: {
+  indicators: string[];
+  onDiscuss: () => void;
+  referHref: string;
+  onReferClick: () => void;
+}) {
   return (
     <Card>
       <CardBody className="flex flex-col gap-4">
@@ -23,7 +33,7 @@ export function KeyIndicatorsSection({ indicators, onDiscuss }: { indicators: st
             <Button variant="outline" size="sm" onClick={onDiscuss}>
               Discuss With Ryan
             </Button>
-            <LinkButton href="/partner/refer" size="sm">
+            <LinkButton href={referHref} size="sm" onClick={onReferClick}>
               Refer This Patient
             </LinkButton>
           </div>

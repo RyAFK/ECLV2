@@ -10,6 +10,7 @@ import { Button, LinkButton } from "@/components/ui/Button";
 import { Modal } from "@/components/ui/Modal";
 import { useToast } from "@/components/ui/Toast";
 import { EDUCATION_CATEGORIES, EDUCATION_MODULES, UPCOMING_CPD_EVENT } from "@/data/education";
+import { LEGACY_EDUCATION_MODULE_MAP } from "@/data/clinical-education";
 import type { EducationModule } from "@/lib/types";
 
 export default function EducationLibraryPage() {
@@ -147,14 +148,21 @@ export default function EducationLibraryPage() {
               </ul>
             </div>
             <div className="flex flex-wrap gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => showToast({ variant: "success", title: "Knowledge check complete", description: "3/3 demo questions answered." })}
-              >
-                <GraduationCap className="h-4 w-4" />
-                Take knowledge check
-              </Button>
+              {LEGACY_EDUCATION_MODULE_MAP[active.id] ? (
+                <LinkButton href={`/partner/education/${LEGACY_EDUCATION_MODULE_MAP[active.id]}#knowledge-check`} size="sm">
+                  <GraduationCap className="h-4 w-4" />
+                  Take knowledge check
+                </LinkButton>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => showToast({ variant: "success", title: "Knowledge check complete", description: "3/3 demo questions answered." })}
+                >
+                  <GraduationCap className="h-4 w-4" />
+                  Take knowledge check
+                </Button>
+              )}
               <Button
                 variant="outline"
                 size="sm"

@@ -13,12 +13,16 @@ export function CaseStudySection({
   onAnswered,
   onDiscuss,
   onAddNote,
+  referHref,
+  onReferClick,
 }: {
   scenario: string;
   options: ClinicalCaseOption[];
   onAnswered: () => void;
   onDiscuss: () => void;
   onAddNote: () => void;
+  referHref: string;
+  onReferClick: () => void;
 }) {
   const [selected, setSelected] = useState<number | null>(null);
 
@@ -55,7 +59,7 @@ export function CaseStudySection({
             You may already have a patient in your practice with a similar presentation.
           </p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <LinkButton href="/partner/refer" size="sm">
+            <LinkButton href={referHref} size="sm" onClick={onReferClick}>
               Refer My Patient
             </LinkButton>
             <Button variant="outline" size="sm" onClick={onDiscuss}>

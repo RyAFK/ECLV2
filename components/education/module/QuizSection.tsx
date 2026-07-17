@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { CheckCircle2, ChevronRight, XCircle } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/Card";
-import { Button, LinkButton } from "@/components/ui/Button";
+import { Button } from "@/components/ui/Button";
 import { StepProgress } from "@/components/ui/ProgressBar";
 import { cn } from "@/lib/utils";
 import type { ClinicalQuizQuestion } from "@/lib/types";
@@ -15,7 +15,6 @@ export function QuizSection({
   score,
   onAnswer,
   onRetake,
-  onDiscuss,
 }: {
   moduleTitle: string;
   questions: ClinicalQuizQuestion[];
@@ -23,7 +22,6 @@ export function QuizSection({
   score: number;
   onAnswer: (correct: boolean) => void;
   onRetake: () => void;
-  onDiscuss: () => void;
 }) {
   const [step, setStep] = useState(0);
   const [selected, setSelected] = useState<number | null>(null);
@@ -80,21 +78,6 @@ export function QuizSection({
             <p className="font-serif-display text-xl font-semibold text-[var(--text)]">Module Complete</p>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">You scored {displayScore}/3</p>
             <p className="mt-1 text-sm text-[var(--text-secondary)]">You have completed this Clinical Education module.</p>
-          </div>
-
-          <div className="mt-2 w-full max-w-md rounded-xl border border-[var(--border)] bg-[var(--surface-soft)]/60 p-5">
-            <p className="text-sm font-medium text-[var(--text)]">The most important question: do you have a patient in mind?</p>
-            <div className="mt-3 flex flex-wrap justify-center gap-2">
-              <LinkButton href="/partner/refer" size="sm">
-                Yes — Refer a Patient
-              </LinkButton>
-              <Button variant="outline" size="sm" onClick={onDiscuss}>
-                Yes — Discuss With Ryan
-              </Button>
-              <LinkButton href="/partner/education" variant="ghost" size="sm">
-                Not Right Now — Return to Education
-              </LinkButton>
-            </div>
           </div>
 
           <Button variant="ghost" size="sm" onClick={retake}>

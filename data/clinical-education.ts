@@ -10,6 +10,21 @@ export const GUIDE_COVERAGE = [
   "How to discuss the referral with the patient",
 ];
 
+/**
+ * Maps legacy education-library module IDs (data/education.ts) to their
+ * equivalent Clinical Education module, so older entry points can open the
+ * real interactive knowledge check + conversion journey instead of a demo
+ * simulation. Topics with no equivalent module are intentionally omitted.
+ */
+export const LEGACY_EDUCATION_MODULE_MAP: Record<string, string> = {
+  "when-refer-cataract": "cataract-referral",
+  "rle-conversation": "rle-candidates",
+  "icl-vs-laser": "icl-vs-laser",
+  "premium-lens-conversations": "premium-iols",
+  "managing-expectations": "post-op-expectations",
+  "corneal-red-flags": "red-flags",
+};
+
 export const CLINICAL_MODULES: ClinicalModule[] = [
   {
     id: "cataract-referral",
@@ -17,6 +32,7 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
     summary: "Recognise when symptoms, visual function and lifestyle impact may justify further ophthalmic assessment.",
     duration: "5 minutes",
     icon: "Eye",
+    pathwayId: "cataract",
     openingQuestion:
       "Have you seen a patient recently whose vision is technically acceptable on the chart, but who is increasingly struggling with glare, driving, reading or daily activities?",
     openingFollowUp: "This may be the type of patient worth considering for further ophthalmic assessment. Let's explore why.",
@@ -125,6 +141,8 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
       title: "Cataract Referral Guide",
       description: "A practical one-page guide designed to support patient identification and appropriate referrals.",
     },
+    assistantIntro:
+      "You've just completed the cataract referral module. Tell us a little about the broad patient situation and explore whether an ECL cataract assessment may be relevant to discuss.",
   },
   {
     id: "rle-candidates",
@@ -132,6 +150,7 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
     summary: "Understand the broad patient characteristics that may prompt a conversation about refractive lens exchange.",
     duration: "6 minutes",
     icon: "Focus",
+    pathwayId: "rle",
     openingQuestion:
       "Have you seen a presbyopic patient in their 50s or 60s who is increasingly frustrated with reading glasses, varifocals or contact-lens compromises — and who has good ocular health otherwise?",
     openingFollowUp: "This may be the type of patient worth considering for a refractive lens exchange conversation. Let's explore why.",
@@ -223,6 +242,8 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
       title: "RLE Candidate Referral Guide",
       description: "A practical one-page guide designed to support patient identification and appropriate referrals.",
     },
+    assistantIntro:
+      "You've just completed the RLE candidates module. Tell us a little about the broad patient situation and explore whether an ECL refractive lens exchange assessment could warrant further discussion.",
   },
   {
     id: "icl-vs-laser",
@@ -230,6 +251,7 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
     summary: "Explore the key differences between implantable contact lenses and laser vision correction pathways.",
     duration: "6 minutes",
     icon: "GitCompare",
+    pathwayId: "icl",
     openingQuestion:
       "Have you seen a younger patient with a high prescription, or thinner corneas, who has been told they 'might not be suitable' for laser eye surgery?",
     openingFollowUp: "This may be the type of patient worth considering for an ICL conversation. Let's explore why.",
@@ -317,6 +339,8 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
       title: "ICL and Laser Vision Correction Referral Guide",
       description: "A practical one-page guide designed to support patient identification and appropriate referrals.",
     },
+    assistantIntro:
+      "You've just completed the ICL versus laser vision correction module. Tell us a little about the broad patient situation and explore whether an ECL refractive surgery assessment — ICL or laser — may be relevant to discuss.",
   },
   {
     id: "premium-iols",
@@ -324,6 +348,7 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
     summary: "Build confidence discussing monofocal, toric, EDOF and multifocal lens technologies with patients.",
     duration: "7 minutes",
     icon: "Aperture",
+    pathwayId: "cataract",
     openingQuestion: "Have you had a cataract patient ask what type of lens they'll receive, or whether they could reduce their need for glasses after surgery?",
     openingFollowUp: "This is a common and important conversation. Let's explore how to approach it confidently.",
     keyIndicators: [
@@ -407,6 +432,8 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
       title: "Premium IOL Conversation Guide",
       description: "A practical one-page guide designed to support patient identification and appropriate referrals.",
     },
+    assistantIntro:
+      "You've just completed the premium IOLs module. Tell us a little about the broad patient situation and explore whether an ECL cataract and lens-option assessment may be relevant to discuss.",
   },
   {
     id: "post-op-expectations",
@@ -414,6 +441,7 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
     summary: "Help patients understand recovery, adaptation and realistic visual expectations following treatment.",
     duration: "5 minutes",
     icon: "ClipboardCheck",
+    pathwayId: "not-sure",
     openingQuestion:
       "Have you seen a patient recently who's worried about what to expect after eye surgery, or who's had treatment and isn't sure if what they're experiencing is normal?",
     openingFollowUp: "Helping set realistic expectations is one of the most valuable conversations you can have. Let's explore how.",
@@ -505,6 +533,8 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
       title: "Post-Operative Expectations Guide",
       description: "A practical one-page guide designed to support patient identification and appropriate referrals.",
     },
+    assistantIntro:
+      "You've just completed the post-operative expectations module. Tell us a little about the broad patient situation and explore whether a conversation with the ECL team could help clarify their recovery, subject to full clinical assessment.",
   },
   {
     id: "red-flags",
@@ -512,6 +542,7 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
     summary: "Recognise symptoms and clinical presentations that may require timely specialist ophthalmological assessment.",
     duration: "6 minutes",
     icon: "TriangleAlert",
+    pathwayId: "not-sure",
     openingQuestion: "Have you seen a patient recently with sudden vision changes, flashes, floaters, or eye pain that felt like it needed more than a routine review?",
     openingFollowUp: "Recognising red flags promptly can make a significant difference to patient outcomes. Let's explore the key signs.",
     keyIndicators: [
@@ -597,6 +628,10 @@ export const CLINICAL_MODULES: ClinicalModule[] = [
       title: "Red Flags Referral Guide",
       description: "A practical one-page guide designed to support patient identification and appropriate referrals.",
     },
+    assistantIntro:
+      "You've just completed the red flags module. Tell us a little about the broad patient situation and explore whether specialist ophthalmology assessment may be relevant to discuss.",
+    safetyNote:
+      "This tool does not replace urgent or emergency referral pathways. If a patient has red-flag symptoms requiring same-day assessment, follow your practice's urgent referral protocol directly rather than waiting on this tool.",
   },
 ];
 

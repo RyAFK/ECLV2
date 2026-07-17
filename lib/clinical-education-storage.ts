@@ -2,6 +2,8 @@
 
 import { useCallback, useMemo } from "react";
 import { useLocalStorageState } from "@/lib/demo-storage";
+import { logEducationEvent } from "@/lib/education-analytics";
+import { getClinicalModule } from "@/data/clinical-education";
 import type { ClinicalEducationProgress, ModuleProgressRecord, PatientInMindNote } from "@/lib/types";
 
 const PROGRESS_KEY = "clinical-education-progress";
@@ -91,24 +93,26 @@ export function useClinicalEducationProgress() {
 
   const recordQuizAnswer = useCallback(
     (moduleId: string, correct: boolean) => {
-      setProgress((prev) =>
-        withRecord(prev, moduleId, (record) => {
-          if (record.quizAnswered >= 3) return record;
-          const quizAnswered = record.quizAnswered + 1;
-          const quizScore = record.quizScore + (correct ? 1 : 0);
-          const quizCompleted = quizAnswered >= 3;
-          return {
-            ...record,
-            quizAnswered,
-            quizScore,
-            quizCompleted,
-            status: quizCompleted ? "completed" : record.status,
-            updatedAt: now(),
-          };
-        })
-      );
+      const record = progress[moduleId] ?? DEFAULT_MODULE_PROGRESS;
+      if (record.quizAnswered >= 3) return;
+      const quizAnswered = record.quizAnswered + 1;
+      const quizScore = record.quizScore + (correct ? 1 : 0);
+      const quizCompleted = quizAnswered >= 3;
+      const nextRecord: ModuleProgressRecord = {
+        ...record,
+        quizAnswered,
+        quizScore,
+        quizCompleted,
+        status: quizCompleted ? "completed" : record.status,
+        updatedAt: now(),
+      };
+      setProgress((prev) => ({ ...prev, [moduleId]: nextRecord }));
+      if (quizCompleted && !record.quizCompleted) {
+        const mod = getClinicalModule(moduleId);
+        if (mod) logEducationEvent("education_module_completed", mod.id, mod.title, mod.pathwayId);
+      }
     },
-    [setProgress]
+    [progress, setProgress]
   );
 
   const resetQuiz = useCallback(
