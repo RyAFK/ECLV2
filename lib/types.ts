@@ -192,3 +192,93 @@ export interface AuditEntry {
   outcome: string;
   ip: string;
 }
+
+export type ModuleProgressStatus = "not-started" | "in-progress" | "completed";
+
+export interface ModuleProgressRecord {
+  status: ModuleProgressStatus;
+  videoWatched: boolean;
+  caseStudyAnswered: boolean;
+  referralScenariosAnswered: number;
+  quizAnswered: number;
+  quizScore: number;
+  quizCompleted: boolean;
+  savedForLater: boolean;
+  updatedAt: string;
+}
+
+export type ClinicalEducationProgress = Record<string, ModuleProgressRecord>;
+
+export interface PatientInMindNote {
+  id: string;
+  note: string;
+  moduleId?: string;
+  moduleTitle?: string;
+  markedForDiscussion: boolean;
+  convertedToReferral: boolean;
+  createdAt: string;
+}
+
+export interface ClinicalCaseOption {
+  label: string;
+  feedback: string;
+}
+
+export interface ClinicalReferralScenario {
+  scenario: string;
+  feedback: {
+    refer: string;
+    monitor: string;
+    unclear: string;
+  };
+}
+
+export interface ClinicalQuizQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface ClinicalModule {
+  id: string;
+  title: string;
+  summary: string;
+  duration: string;
+  icon: string;
+  pathwayId: PathwayId;
+  openingQuestion: string;
+  openingFollowUp: string;
+  keyIndicators: string[];
+  conversationExamples: string[];
+  caseStudy: {
+    scenario: string;
+    options: ClinicalCaseOption[];
+  };
+  referralScenarios: ClinicalReferralScenario[];
+  quiz: ClinicalQuizQuestion[];
+  guide: {
+    title: string;
+    description: string;
+  };
+  /** Non-diagnostic intro shown by the Referral Assistant when arriving from this module. */
+  assistantIntro: string;
+  /** Shown alongside the assistant intro for modules where urgent pathways must stay separate from this tool. */
+  safetyNote?: string;
+}
+
+/** Analytics event names for the Clinical Education referral-generation funnel. */
+export type EducationAnalyticsEvent =
+  | "education_module_opened"
+  | "education_module_completed"
+  | "education_discuss_case_clicked"
+  | "education_refer_patient_clicked"
+  | "education_guide_downloaded";
+
+export interface EducationAnalyticsEntry {
+  event: EducationAnalyticsEvent;
+  moduleId: string;
+  moduleTitle: string;
+  pathway: string;
+  timestamp: string;
+}

@@ -58,6 +58,7 @@ interface LinkButtonProps extends BaseProps {
   target?: string;
   rel?: string;
   "aria-label"?: string;
+  onClick?: () => void;
 }
 
 export function LinkButton({
