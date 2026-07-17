@@ -10,6 +10,21 @@ export const GUIDE_COVERAGE = [
   "How to discuss the referral with the patient",
 ];
 
+/**
+ * Maps legacy education-library module IDs (data/education.ts) to their
+ * equivalent Clinical Education module, so older entry points can open the
+ * real interactive knowledge check + conversion journey instead of a demo
+ * simulation. Topics with no equivalent module are intentionally omitted.
+ */
+export const LEGACY_EDUCATION_MODULE_MAP: Record<string, string> = {
+  "when-refer-cataract": "cataract-referral",
+  "rle-conversation": "rle-candidates",
+  "icl-vs-laser": "icl-vs-laser",
+  "premium-lens-conversations": "premium-iols",
+  "managing-expectations": "post-op-expectations",
+  "corneal-red-flags": "red-flags",
+};
+
 export const CLINICAL_MODULES: ClinicalModule[] = [
   {
     id: "cataract-referral",

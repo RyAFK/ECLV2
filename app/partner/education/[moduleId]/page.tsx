@@ -143,14 +143,16 @@ export default function ClinicalEducationModulePage() {
 
       <WouldYouReferSection scenarios={mod.referralScenarios} onScenarioAnswered={() => markReferralScenarioAnswered(mod.id)} />
 
-      <QuizSection
-        moduleTitle={mod.title}
-        questions={mod.quiz}
-        completed={record.quizCompleted}
-        score={record.quizScore}
-        onAnswer={(correct) => recordQuizAnswer(mod.id, correct)}
-        onRetake={() => resetQuiz(mod.id)}
-      />
+      <div id="knowledge-check" className="scroll-mt-24">
+        <QuizSection
+          moduleTitle={mod.title}
+          questions={mod.quiz}
+          completed={record.quizCompleted}
+          score={record.quizScore}
+          onAnswer={(correct) => recordQuizAnswer(mod.id, correct)}
+          onRetake={() => resetQuiz(mod.id)}
+        />
+      </div>
 
       {record.status === "completed" && (
         <ConversionPanel
