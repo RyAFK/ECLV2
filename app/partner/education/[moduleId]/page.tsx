@@ -19,8 +19,10 @@ import { WouldYouReferSection } from "@/components/education/module/WouldYouRefe
 import { QuizSection } from "@/components/education/module/QuizSection";
 import { GuideSection } from "@/components/education/module/GuideSection";
 import { CompletionScreen } from "@/components/education/module/CompletionScreen";
+import { ConversionPanel } from "@/components/education/module/ConversionPanel";
 import { getClinicalModule } from "@/data/clinical-education";
 import { useClinicalEducationProgress, usePatientNotes } from "@/lib/clinical-education-storage";
+import { logEducationEvent } from "@/lib/education-analytics";
 
 export default function ClinicalEducationModulePage() {
   const params = useParams<{ moduleId: string }>();
@@ -44,7 +46,10 @@ export default function ClinicalEducationModulePage() {
   const [noteOpen, setNoteOpen] = useState(false);
 
   useEffect(() => {
-    if (mod) startModule(mod.id);
+    if (mod) {
+      startModule(mod.id);
+      logEducationEvent("education_module_opened", mod.id, mod.title, mod.pathwayId);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [moduleId]);
 
@@ -59,6 +64,22 @@ export default function ClinicalEducationModulePage() {
   }
 
   const record = getRecord(mod.id);
+  const referHref = `/partner/refer?pathway=${encodeURIComponent(mod.pathwayId)}`;
+  const assistantHref = `/partner/assistant?module=${encodeURIComponent(mod.id)}&pathway=${encodeURIComponent(mod.pathwayId)}`;
+
+  const { id: moduleIdConst, title: moduleTitle, pathwayId } = mod;
+
+  const logReferClick = () => logEducationEvent("education_refer_patient_clicked", moduleIdConst, moduleTitle, pathwayId);
+
+  const openDiscussModal = () => {
+    logEducationEvent("education_discuss_case_clicked", moduleIdConst, moduleTitle, pathwayId);
+    setDiscussOpen(true);
+  };
+
+  const logDiscussAssistantClick = () =>
+    logEducationEvent("education_discuss_case_clicked", moduleIdConst, moduleTitle, pathwayId);
+
+  const logGuideDownload = () => logEducationEvent("education_guide_downloaded", moduleIdConst, moduleTitle, pathwayId);
 
   return (
     <div className="mx-auto flex max-w-3xl flex-col gap-6">
@@ -92,9 +113,21 @@ export default function ClinicalEducationModulePage() {
         </CardBody>
       </Card>
 
-      <VideoSection duration={mod.duration} watched={record.videoWatched} onWatch={() => markVideoWatched(mod.id)} onDiscuss={() => setDiscussOpen(true)} />
+      <VideoSection
+        duration={mod.duration}
+        watched={record.videoWatched}
+        onWatch={() => markVideoWatched(mod.id)}
+        onDiscuss={openDiscussModal}
+        referHref={referHref}
+        onReferClick={logReferClick}
+      />
 
-      <KeyIndicatorsSection indicators={mod.keyIndicators} onDiscuss={() => setDiscussOpen(true)} />
+      <KeyIndicatorsSection
+        indicators={mod.keyIndicators}
+        onDiscuss={openDiscussModal}
+        referHref={referHref}
+        onReferClick={logReferClick}
+      />
 
       <ConversationGuidanceSection examples={mod.conversationExamples} />
 
@@ -102,8 +135,10 @@ export default function ClinicalEducationModulePage() {
         scenario={mod.caseStudy.scenario}
         options={mod.caseStudy.options}
         onAnswered={() => markCaseStudyAnswered(mod.id)}
-        onDiscuss={() => setDiscussOpen(true)}
+        onDiscuss={openDiscussModal}
         onAddNote={() => setNoteOpen(true)}
+        referHref={referHref}
+        onReferClick={logReferClick}
       />
 
       <WouldYouReferSection scenarios={mod.referralScenarios} onScenarioAnswered={() => markReferralScenarioAnswered(mod.id)} />
@@ -115,13 +150,30 @@ export default function ClinicalEducationModulePage() {
         score={record.quizScore}
         onAnswer={(correct) => recordQuizAnswer(mod.id, correct)}
         onRetake={() => resetQuiz(mod.id)}
-        onDiscuss={() => setDiscussOpen(true)}
       />
 
-      <GuideSection guide={mod.guide} savedForLater={record.savedForLater} onToggleSave={() => toggleSavedForLater(mod.id)} />
+      {record.status === "completed" && (
+        <ConversionPanel
+          moduleTitle={mod.title}
+          referHref={referHref}
+          assistantHref={assistantHref}
+          safetyNote={mod.safetyNote}
+          onReferClick={logReferClick}
+          onDiscussClick={logDiscussAssistantClick}
+        />
+      )}
+
+      <GuideSection guide={mod.guide} savedForLater={record.savedForLater} onToggleSave={() => toggleSavedForLater(mod.id)} onDownload={logGuideDownload} />
 
       {record.status === "completed" && (
-        <CompletionScreen moduleTitle={mod.title} guideTitle={mod.guide.title} onDiscuss={() => setDiscussOpen(true)} />
+        <CompletionScreen
+          moduleTitle={mod.title}
+          guideTitle={mod.guide.title}
+          onDiscuss={openDiscussModal}
+          referHref={referHref}
+          onReferClick={logReferClick}
+          onDownload={logGuideDownload}
+        />
       )}
 
       <DiscussCaseModal open={discussOpen} onClose={() => setDiscussOpen(false)} moduleTitle={mod.title} onBookRyan={() => setRyanOpen(true)} />

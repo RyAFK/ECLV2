@@ -10,11 +10,15 @@ export function VideoSection({
   watched,
   onWatch,
   onDiscuss,
+  referHref,
+  onReferClick,
 }: {
   duration: string;
   watched: boolean;
   onWatch: () => void;
   onDiscuss: () => void;
+  referHref: string;
+  onReferClick: () => void;
 }) {
   const [playing, setPlaying] = useState(watched);
 
@@ -65,7 +69,7 @@ export function VideoSection({
         <div className="rounded-xl border border-[var(--border)] bg-[var(--surface-soft)]/60 p-4">
           <p className="text-sm font-medium text-[var(--text)]">Does this remind you of a patient you have recently seen?</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <LinkButton href="/partner/refer" size="sm">
+            <LinkButton href={referHref} size="sm" onClick={onReferClick}>
               Yes — Refer a Patient
             </LinkButton>
             <Button variant="outline" size="sm" onClick={onDiscuss}>

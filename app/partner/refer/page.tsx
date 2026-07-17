@@ -1,12 +1,13 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
   FileText,
+  Sparkles,
   TriangleAlert,
   Upload,
   X,
@@ -109,10 +110,23 @@ function generateReference() {
 }
 
 export default function ReferPatientPage() {
+  return (
+    <Suspense fallback={null}>
+      <ReferPatientForm />
+    </Suspense>
+  );
+}
+
+function ReferPatientForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { showToast } = useToast();
+
+  const pathwayParam = searchParams.get("pathway");
+  const preselectedPathway = PATHWAYS.some((p) => p.id === pathwayParam) ? (pathwayParam as PathwayId) : "";
+
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState<FormState>(INITIAL_STATE);
+  const [form, setForm] = useState<FormState>({ ...INITIAL_STATE, pathwayId: preselectedPathway });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [docs, setDocs] = useState<UploadedDoc[]>([]);
   const [reference, setReference] = useState("");
@@ -205,6 +219,16 @@ export default function ReferPatientPage() {
           Complete the guided referral form to send a patient to Eye Clinic London.
         </p>
       </div>
+
+      {step < 6 && preselectedPathway && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-[var(--accent)]/30 bg-[var(--accent-soft)]/30 px-4 py-3 text-sm text-[var(--text)]">
+          <Sparkles className="mt-0.5 h-4 w-4 shrink-0 text-[var(--accent)]" />
+          <p>
+            We&apos;ve pre-selected <strong>{PATHWAYS.find((p) => p.id === preselectedPathway)?.name}</strong> based on where
+            you came from — you can change this in step 2 if it isn&apos;t right.
+          </p>
+        </div>
+      )}
 
       {step < 6 && (
         <div className="rounded-xl border border-[var(--warning)]/30 bg-[var(--warning-soft)] px-4 py-3 text-sm text-[var(--text)]">

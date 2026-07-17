@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { Suspense, useState } from "react";
 import Link from "next/link";
-import { Sparkles } from "lucide-react";
+import { useSearchParams } from "next/navigation";
+import { GraduationCap, Sparkles } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Button, LinkButton } from "@/components/ui/Button";
 import { RadioCard } from "@/components/ui/Field";
 import { StepProgress } from "@/components/ui/ProgressBar";
 import { ASSISTANT_DISCLAIMER } from "@/lib/constants";
+import { getClinicalModule } from "@/data/clinical-education";
 
 const QUESTIONS = [
   {
@@ -49,11 +51,25 @@ const OUTCOME_MAP: Record<string, { pathway: string; note: string }> = {
 };
 
 export default function ReferralAssistantPage() {
+  return (
+    <Suspense fallback={null}>
+      <ReferralAssistant />
+    </Suspense>
+  );
+}
+
+function ReferralAssistant() {
+  const searchParams = useSearchParams();
+  const moduleId = searchParams.get("module");
+  const pathwayParam = searchParams.get("pathway");
+  const sourceModule = moduleId ? getClinicalModule(moduleId) : undefined;
+
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<string[]>([]);
 
   const finished = step >= QUESTIONS.length;
   const outcome = finished ? OUTCOME_MAP[answers[0]] : null;
+  const referHref = pathwayParam ? `/partner/refer?pathway=${encodeURIComponent(pathwayParam)}` : "/partner/refer";
 
   function selectAnswer(value: string) {
     const next = [...answers];
@@ -80,6 +96,18 @@ export default function ReferralAssistantPage() {
           </p>
         </div>
       </div>
+
+      {sourceModule && (
+        <div className="flex items-start gap-2.5 rounded-xl border border-teal-200 bg-teal-50 px-4 py-3 text-sm text-[var(--text)] dark:border-teal-800 dark:bg-teal-950/40">
+          <GraduationCap className="mt-0.5 h-4 w-4 shrink-0 text-teal-700 dark:text-teal-300" />
+          <div>
+            <p>{sourceModule.assistantIntro}</p>
+            {sourceModule.safetyNote && (
+              <p className="mt-2 text-xs leading-relaxed text-teal-900 dark:text-teal-100">{sourceModule.safetyNote}</p>
+            )}
+          </div>
+        </div>
+      )}
 
       <div className="rounded-xl border border-[var(--information)]/30 bg-[var(--information-soft)] px-4 py-3 text-sm text-[var(--text)]">
         {ASSISTANT_DISCLAIMER}
@@ -109,7 +137,7 @@ export default function ReferralAssistantPage() {
                   </p>
                 </div>
                 <div className="flex flex-wrap gap-3">
-                  <LinkButton href="/partner/refer">Refer this patient</LinkButton>
+                  <LinkButton href={referHref}>Refer this patient</LinkButton>
                   <LinkButton href="/partner/contact" variant="outline">
                     Discuss this case
                   </LinkButton>

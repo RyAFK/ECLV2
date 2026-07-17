@@ -9,10 +9,16 @@ export function CompletionScreen({
   moduleTitle,
   guideTitle,
   onDiscuss,
+  referHref,
+  onReferClick,
+  onDownload,
 }: {
   moduleTitle: string;
   guideTitle: string;
   onDiscuss: () => void;
+  referHref: string;
+  onReferClick: () => void;
+  onDownload: () => void;
 }) {
   const { showToast } = useToast();
 
@@ -32,7 +38,7 @@ export function CompletionScreen({
 
         <p className="mt-2 text-sm font-medium text-white/90">What would you like to do next?</p>
         <div className="flex flex-wrap justify-center gap-2.5">
-          <LinkButton href="/partner/refer" variant="secondary">
+          <LinkButton href={referHref} variant="secondary" onClick={onReferClick}>
             <Stethoscope className="h-4 w-4" />
             Refer a Patient
           </LinkButton>
@@ -43,9 +49,10 @@ export function CompletionScreen({
           <Button
             variant="outline"
             className="border-white/25 text-white hover:bg-white/10"
-            onClick={() =>
-              showToast({ variant: "success", title: "Demo PDF downloaded", description: `${guideTitle}.pdf (simulation only)` })
-            }
+            onClick={() => {
+              onDownload();
+              showToast({ variant: "success", title: "Demo PDF downloaded", description: `${guideTitle}.pdf (simulation only)` });
+            }}
           >
             <Download className="h-4 w-4" />
             Download Referral Guide

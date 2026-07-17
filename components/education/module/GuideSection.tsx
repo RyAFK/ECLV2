@@ -11,10 +11,12 @@ export function GuideSection({
   guide,
   savedForLater,
   onToggleSave,
+  onDownload,
 }: {
   guide: { title: string; description: string };
   savedForLater: boolean;
   onToggleSave: () => void;
+  onDownload: () => void;
 }) {
   const { showToast } = useToast();
 
@@ -41,9 +43,10 @@ export function GuideSection({
         <div className="flex shrink-0 flex-col gap-2 sm:items-end">
           <Button
             size="sm"
-            onClick={() =>
-              showToast({ variant: "success", title: "Demo PDF downloaded", description: `${guide.title}.pdf (simulation only)` })
-            }
+            onClick={() => {
+              onDownload();
+              showToast({ variant: "success", title: "Demo PDF downloaded", description: `${guide.title}.pdf (simulation only)` });
+            }}
           >
             <Download className="h-4 w-4" />
             Download Referral Guide
