@@ -17,7 +17,8 @@ import { LinkButton } from "@/components/ui/Button";
 import { REFERRALS } from "@/data/referrals";
 import { PARTNER_DEMO_USER } from "@/data/demo-users";
 import { UPDATES } from "@/data/updates";
-import { EDUCATION_MODULES, UPCOMING_CPD_EVENT } from "@/data/education";
+import { UPCOMING_CPD_EVENT } from "@/data/education";
+import { CLINICAL_MODULES } from "@/data/clinical-education";
 import { RYAN_CONTACT } from "@/lib/constants";
 import { formatDate } from "@/lib/formatters";
 
@@ -35,7 +36,7 @@ const QUICK_LINKS = [
 
 export default function PartnerDashboardPage() {
   const latestUpdate = UPDATES[0];
-  const featuredModule = EDUCATION_MODULES[0];
+  const featuredModule = CLINICAL_MODULES[0];
 
   return (
     <div className="flex flex-col gap-8">
@@ -93,9 +94,9 @@ export default function PartnerDashboardPage() {
               Featured education
             </div>
             <p className="mt-2 font-serif-display text-base font-semibold text-[var(--text)]">{featuredModule.title}</p>
-            <p className="mt-1.5 text-sm text-[var(--text-secondary)]">{featuredModule.duration} · {featuredModule.category}</p>
+            <p className="mt-1.5 text-sm text-[var(--text-secondary)]">{featuredModule.duration} clinical overview</p>
             <Link href="/partner/education" className="mt-3 inline-flex items-center gap-1 text-sm font-medium text-[var(--accent)] hover:underline">
-              Explore education centre
+              Explore Clinical Education
               <ArrowRight className="h-3.5 w-3.5" />
             </Link>
           </Card>
