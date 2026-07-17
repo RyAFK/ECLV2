@@ -192,3 +192,72 @@ export interface AuditEntry {
   outcome: string;
   ip: string;
 }
+
+export type ModuleProgressStatus = "not-started" | "in-progress" | "completed";
+
+export interface ModuleProgressRecord {
+  status: ModuleProgressStatus;
+  videoWatched: boolean;
+  caseStudyAnswered: boolean;
+  referralScenariosAnswered: number;
+  quizAnswered: number;
+  quizScore: number;
+  quizCompleted: boolean;
+  savedForLater: boolean;
+  updatedAt: string;
+}
+
+export type ClinicalEducationProgress = Record<string, ModuleProgressRecord>;
+
+export interface PatientInMindNote {
+  id: string;
+  note: string;
+  moduleId?: string;
+  moduleTitle?: string;
+  markedForDiscussion: boolean;
+  convertedToReferral: boolean;
+  createdAt: string;
+}
+
+export interface ClinicalCaseOption {
+  label: string;
+  feedback: string;
+}
+
+export interface ClinicalReferralScenario {
+  scenario: string;
+  feedback: {
+    refer: string;
+    monitor: string;
+    unclear: string;
+  };
+}
+
+export interface ClinicalQuizQuestion {
+  question: string;
+  options: string[];
+  correctIndex: number;
+  explanation: string;
+}
+
+export interface ClinicalModule {
+  id: string;
+  title: string;
+  summary: string;
+  duration: string;
+  icon: string;
+  openingQuestion: string;
+  openingFollowUp: string;
+  keyIndicators: string[];
+  conversationExamples: string[];
+  caseStudy: {
+    scenario: string;
+    options: ClinicalCaseOption[];
+  };
+  referralScenarios: ClinicalReferralScenario[];
+  quiz: ClinicalQuizQuestion[];
+  guide: {
+    title: string;
+    description: string;
+  };
+}
