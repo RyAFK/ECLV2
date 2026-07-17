@@ -58,13 +58,13 @@ export const PARTNER_MOBILE_NAV = [
   { label: "Home", href: "/partner", icon: "Home" },
   { label: "Referrals", href: "/partner/referrals", icon: "ClipboardList" },
   { label: "Refer", href: "/partner/refer", icon: "PlusCircle", emphasize: true },
-  { label: "Assistant", href: "/partner/assistant", icon: "Sparkles" },
+  { label: "Education", href: "/partner/education", icon: "GraduationCap" },
   { label: "More", href: "#more", icon: "Menu" },
 ];
 
 export const PARTNER_MORE_LINKS = [
   { label: "Services", href: "/partner/services", icon: "Stethoscope" },
-  { label: "Education", href: "/partner/education", icon: "GraduationCap" },
+  { label: "Referral Assistant", href: "/partner/assistant", icon: "Sparkles" },
   { label: "News and updates", href: "/partner/updates", icon: "Newspaper" },
   { label: "Practice resources", href: "/partner/resources", icon: "FolderOpen" },
   { label: "Contact Ryan", href: "/partner/contact", icon: "MessageCircle" },
