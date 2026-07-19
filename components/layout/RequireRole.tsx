@@ -14,7 +14,7 @@ export function RequireRole({ role, children }: { role: PortalRole; children: Re
   const { isConfigured, loading, user, profile } = useAuth();
   const router = useRouter();
 
-  const mismatched = isConfigured && !loading && (!user || !profile || profile.role !== role);
+  const mismatched = isConfigured && !loading && (!user || !profile || profile.portal_role !== role);
 
   useEffect(() => {
     if (mismatched) router.replace("/login");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { CalendarClock, Mail, MessageSquare, Phone } from "lucide-react";
 import { Card, CardBody } from "@/components/ui/Card";
@@ -9,6 +9,7 @@ import { Field, Input, Select, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/ui/Toast";
 import { RYAN_CONTACT } from "@/lib/constants";
 import { PARTNER_DEMO_USER } from "@/data/demo-users";
+import { useAuth } from "@/lib/supabase/auth-context";
 import { initials } from "@/lib/formatters";
 
 const REASONS = [
@@ -26,6 +27,7 @@ const REASONS = [
 export default function ContactRyanPage() {
   const router = useRouter();
   const { showToast } = useToast();
+  const { profile } = useAuth();
   const [submitted, setSubmitted] = useState(false);
   const [form, setForm] = useState({
     name: PARTNER_DEMO_USER.name,
@@ -37,6 +39,18 @@ export default function ContactRyanPage() {
     preferredTime: "",
     message: "",
   });
+
+  useEffect(() => {
+    if (!profile) return;
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- one-time prefill from the loaded profile, not derivable from render
+    setForm((prev) => ({
+      ...prev,
+      name: profile.display_name || prev.name,
+      organisation: profile.practice_name || prev.organisation,
+      email: profile.email || prev.email,
+      phone: profile.contact_number || prev.phone,
+    }));
+  }, [profile]);
 
   function update<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
     setForm((prev) => ({ ...prev, [key]: value }));

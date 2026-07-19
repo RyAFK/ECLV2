@@ -1,21 +1,62 @@
+"use client";
+
+import { use, useEffect, useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
-import { REFERRALS } from "@/data/referrals";
 import { Card, CardBody } from "@/components/ui/Card";
 import { ReferralStatusBadge } from "@/components/referrals/StatusBadge";
 import { PathwayTimeline } from "@/components/referrals/PathwayTimeline";
 import { ContactRyanCard } from "@/components/referrals/ContactRyanCard";
 import { formatDate } from "@/lib/formatters";
+import type { Referral } from "@/lib/types";
+import { REFERRALS } from "@/data/referrals";
+import { getSupabaseClient } from "@/lib/supabase/client";
+import { referralRowToReferral } from "@/lib/supabase/mappers";
 
-export function generateStaticParams() {
-  return REFERRALS.map((r) => ({ id: r.id }));
-}
+/**
+ * Fetches a single referral by id directly (rather than filtering the full
+ * useReferrals() list) so RLS is the only thing deciding visibility: a
+ * partner requesting another partner's referral id gets zero rows back, not
+ * a client-side filtered-out card, which is what actually protects this URL
+ * against being used to enumerate other partners' referrals.
+ */
+export default function PartnerReferralDetailPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params);
+  const [referral, setReferral] = useState<Referral | null | undefined>(undefined);
 
-export default async function PartnerReferralDetailPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
-  const referral = REFERRALS.find((r) => r.id === id);
-  if (!referral) notFound();
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const supabase = getSupabaseClient();
+      if (!supabase) {
+        const found = REFERRALS.find((r) => r.id === id) ?? null;
+        if (!cancelled) setReferral(found);
+        return;
+      }
+      const { data, error } = await supabase.from("referrals").select("*, partners(name)").eq("id", id).maybeSingle();
+      if (cancelled) return;
+      if (error || !data) {
+        setReferral(null);
+        return;
+      }
+      setReferral(referralRowToReferral(data, data.partners?.name ?? ""));
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  if (referral === undefined) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <span className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+      </div>
+    );
+  }
+
+  if (referral === null) notFound();
 
   const details = [
     { label: "Reference number", value: referral.reference },
@@ -82,7 +123,7 @@ export default async function PartnerReferralDetailPage({ params }: { params: Pr
               <h2 className="font-serif-display text-lg font-semibold text-[var(--text)]">Current pathway</h2>
               <ul className="mt-3 space-y-2.5 text-sm text-[var(--text-secondary)]">
                 <li>{referral.pathwayName}</li>
-                <li>Consultant-led assessment {referral.timeline[4].complete ? "completed" : "pending"}</li>
+                <li>Consultant-led assessment {referral.timeline[4]?.complete ? "completed" : "pending"}</li>
                 <li>Premium option discussion documented</li>
                 <li>{referral.appointmentDate ? `Appointment on ${formatDate(referral.appointmentDate)}` : "Appointment to be confirmed"}</li>
                 <li>Postoperative follow-up planned where applicable</li>

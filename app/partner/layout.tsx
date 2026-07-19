@@ -1,10 +1,10 @@
 import { PartnerShell } from "@/components/layout/PartnerShell";
-import { RequireRole } from "@/components/layout/RequireRole";
+import { PartnerGuard } from "@/components/layout/PartnerGuard";
 
 export default function PartnerLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RequireRole role="partner">
+    <PartnerGuard>
       <PartnerShell>{children}</PartnerShell>
-    </RequireRole>
+    </PartnerGuard>
   );
 }
