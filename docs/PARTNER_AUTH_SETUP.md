@@ -15,30 +15,39 @@
   then routes to `/partner`.
 - Returning users with a completed profile go straight to `/partner`.
 
-## ⚠️ Blocker: numeric-code email requires dashboard configuration I don't have access to
+## ⚠️ Blocker: two dashboard steps I can't perform myself
 
-This implementation could not complete two required dashboard steps — there is
-no Supabase Management API/SMTP-configuration tool available in this session,
-only database/Edge-Function/migration tools. **Until these are done, the OTP
-emails Supabase sends will be its default "Magic Link" template, which does
-not display a numeric code at all** — confirmed via the Supabase docs:
+There is no Supabase Management API/SMTP-configuration tool available in this
+session — only database/Edge-Function/migration tools — so both steps below
+must be done by hand in the dashboard. **Until Step 2 is done, the OTP emails
+Supabase sends will be its default "Magic Link" template, which does not
+display a numeric code at all** — confirmed via the Supabase docs:
 
 > Modify the template to include the `{{ .Token }}` variable, for example:
 > `<h2>One time login code</h2><p>Please enter this code: {{ .Token }}</p>`
 
-So the `/login/partner` code-entry screen will not have a code to receive
-until this is done — the auth *mechanism* (`signInWithOtp` / `verifyOtp`) is
-fully implemented and correct, but the *email* won't show a token to enter
-without this template change.
+The auth *mechanism* (`signInWithOtp` / `verifyOtp`) is fully implemented and
+correct — only the dashboard-side email configuration is outstanding.
 
 ### Step 1 — Configure custom SMTP
 
 Dashboard → **Authentication → Emails → SMTP Settings** for project
-`wszcqjxlkqtjqxyolcos`. Supabase's built-in email sender is rate-limited
-(a few emails/hour) and, per this project's requirements, template editing is
-gated behind having custom SMTP configured. Use credentials from any
-transactional email provider (SendGrid, AWS SES, Postmark, etc.) — these are
-credentials only you can supply.
+`wszcqjxlkqtjqxyolcos`. Provider is **Postmark**; enter:
+
+| Field | Value |
+|---|---|
+| Enable Custom SMTP | On |
+| Sender email | `ryan@eyecliniclondon.com` |
+| Sender name | `ECL Connect` |
+| Host | `smtp.postmarkapp.com` |
+| Port | `587` |
+| Username | Postmark Server API Token (given to the operator directly in chat, not committed to this repo) |
+| Password | Same Postmark Server API Token as the username |
+
+Confirm `ryan@eyecliniclondon.com` (or its domain) is a **verified sender
+signature/domain** in the Postmark account the token belongs to — Postmark
+rejects sends from unverified senders regardless of whether the token itself
+is valid.
 
 ### Step 2 — Edit the OTP / Magic Link template to include `{{ .Token }}`
 
