@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState } from "react";
 import { Bell, Check, X } from "lucide-react";
-import { NOTIFICATIONS } from "@/data/notifications";
+import { useNotifications } from "@/lib/supabase/hooks";
 import { useLocalStorageState } from "@/lib/demo-storage";
 import { cn } from "@/lib/utils";
 
 export function NotificationsDropdown() {
+  const { notifications, source, markRead, markAllRead } = useNotifications();
   const [open, setOpen] = useState(false);
   const [unreadOnly, setUnreadOnly] = useState(false);
   const [readIds, setReadIds] = useLocalStorageState<string[]>("notifications-read", []);
@@ -21,12 +22,27 @@ export function NotificationsDropdown() {
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
-  const items = NOTIFICATIONS.filter((n) => !dismissedIds.includes(n.id)).map((n) => ({
-    ...n,
-    read: n.read || readIds.includes(n.id),
-  }));
+  // Dismiss stays client-only (localStorage) even against live Supabase data:
+  // notifications are an append-only audit trail server-side, so "dismiss" only
+  // hides an item in this browser rather than deleting the row.
+  const items = notifications
+    .filter((n) => !dismissedIds.includes(n.id))
+    .map((n) => ({
+      ...n,
+      read: n.read || readIds.includes(n.id),
+    }));
   const visible = unreadOnly ? items.filter((n) => !n.read) : items;
   const unreadCount = items.filter((n) => !n.read).length;
+
+  function handleMarkRead(id: string) {
+    if (source === "supabase") markRead(id);
+    else setReadIds([...readIds, id]);
+  }
+
+  function handleMarkAllRead() {
+    if (source === "supabase") markAllRead(items.filter((i) => !i.read).map((i) => i.id));
+    else setReadIds(items.map((i) => i.id));
+  }
 
   return (
     <div className="relative" ref={ref}>
@@ -56,7 +72,7 @@ export function NotificationsDropdown() {
                 Unread
               </button>
               <button
-                onClick={() => setReadIds(items.map((i) => i.id))}
+                onClick={handleMarkAllRead}
                 className="rounded-full px-2.5 py-1 text-xs font-medium text-[var(--text-secondary)] transition hover:bg-[var(--surface-soft)]"
               >
                 Mark all read
@@ -89,7 +105,7 @@ export function NotificationsDropdown() {
                   {!n.read && (
                     <button
                       aria-label="Mark as read"
-                      onClick={() => setReadIds([...readIds, n.id])}
+                      onClick={() => handleMarkRead(n.id)}
                       className="rounded-full p-1 text-[var(--text-secondary)] hover:bg-[var(--surface-soft)] hover:text-[var(--text)]"
                     >
                       <Check className="h-3.5 w-3.5" />

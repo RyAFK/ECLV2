@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { Download, Eye, Plus, Search, StickyNote } from "lucide-react";
-import { REFERRALS } from "@/data/referrals";
+import { useReferrals } from "@/lib/supabase/hooks";
 import { Table, THead, TH, TBody, TR, TD } from "@/components/tables/Table";
 import { Input, Select, Checkbox } from "@/components/ui/Field";
 import { ReferralStatusBadge } from "@/components/referrals/StatusBadge";
@@ -13,14 +13,14 @@ import { Badge } from "@/components/ui/Badge";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useToast } from "@/components/ui/Toast";
 import { formatCurrency, formatDate } from "@/lib/formatters";
-import { REFERRAL_STAGE_LABELS, type Referral, type ReferralStage } from "@/lib/types";
+import { REFERRAL_STAGE_LABELS, type ReferralStage } from "@/lib/types";
 import { PATHWAYS } from "@/data/services";
 
 const STAGES = Object.keys(REFERRAL_STAGE_LABELS) as ReferralStage[];
 
 export default function ClinicReferralsPage() {
   const { showToast } = useToast();
-  const [referrals, setReferrals] = useState<Referral[]>(REFERRALS);
+  const { referrals, updateStage } = useReferrals();
   const [search, setSearch] = useState("");
   const [stage, setStage] = useState("all");
   const [pathway, setPathway] = useState("all");
@@ -38,8 +38,8 @@ export default function ClinicReferralsPage() {
 
   const open = referrals.find((r) => r.id === openId) ?? null;
 
-  function updateStage(id: string, newStage: ReferralStage) {
-    setReferrals((prev) => prev.map((r) => (r.id === id ? { ...r, stage: newStage, lastUpdate: new Date().toISOString().slice(0, 10) } : r)));
+  async function handleUpdateStage(id: string, newStage: ReferralStage) {
+    await updateStage(id, newStage);
     showToast({ variant: "success", title: "Status updated", description: `Referral moved to ${REFERRAL_STAGE_LABELS[newStage]}.` });
   }
 
@@ -49,7 +49,6 @@ export default function ClinicReferralsPage() {
 
   function bulkAssign() {
     if (selected.length === 0) return;
-    setReferrals((prev) => prev.map((r) => (selected.includes(r.id) ? { ...r, owner: "Ryan" } : r)));
     showToast({ variant: "success", title: "Owner assigned", description: `${selected.length} referral(s) assigned to Ryan.` });
     setSelected([]);
   }
@@ -169,7 +168,7 @@ export default function ClinicReferralsPage() {
 
             <div>
               <p className="text-sm font-medium text-[var(--text)]">Update status</p>
-              <Select className="mt-2" value={open.stage} onChange={(e) => updateStage(open.id, e.target.value as ReferralStage)}>
+              <Select className="mt-2" value={open.stage} onChange={(e) => handleUpdateStage(open.id, e.target.value as ReferralStage)}>
                 {STAGES.map((s) => (
                   <option key={s} value={s}>
                     {REFERRAL_STAGE_LABELS[s]}

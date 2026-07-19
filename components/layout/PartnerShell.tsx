@@ -1,3 +1,5 @@
+"use client";
+
 import { PlusCircle } from "lucide-react";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { PortalHeader } from "@/components/layout/PortalHeader";
@@ -6,15 +8,20 @@ import { Footer } from "@/components/layout/Footer";
 import { LinkButton } from "@/components/ui/Button";
 import { PARTNER_NAV, PARTNER_MOBILE_NAV, PARTNER_MORE_LINKS } from "@/lib/constants";
 import { PARTNER_DEMO_USER } from "@/data/demo-users";
+import { useAuth } from "@/lib/supabase/auth-context";
 
 export function PartnerShell({ children }: { children: React.ReactNode }) {
+  const { profile } = useAuth();
+  const userName = profile?.full_name || PARTNER_DEMO_USER.name;
+  const userRole = profile ? "Referring partner" : PARTNER_DEMO_USER.role;
+
   return (
     <div className="flex min-h-screen bg-[var(--background)]">
       <Sidebar navItems={PARTNER_NAV} subtitle="Professional Referral Hub" footerLabel="Exit demo" />
       <div className="flex min-h-screen flex-1 flex-col">
         <PortalHeader
-          userName={PARTNER_DEMO_USER.name}
-          userRole={PARTNER_DEMO_USER.role}
+          userName={userName}
+          userRole={userRole}
           action={
             <LinkButton href="/partner/refer" size="sm" className="hidden sm:inline-flex">
               <PlusCircle className="h-4 w-4" />

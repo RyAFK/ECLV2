@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Copy, Download, Eye, MessageCircle, Search, StickyNote } from "lucide-react";
-import { REFERRALS } from "@/data/referrals";
+import { useReferrals } from "@/lib/supabase/hooks";
 import { Table, THead, TH, TBody, TR, TD } from "@/components/tables/Table";
 import { Tabs } from "@/components/ui/Tabs";
 import { Input, Select } from "@/components/ui/Field";
@@ -29,22 +29,21 @@ const STATUS_TABS: { label: string; value: ReferralStage | "all" }[] = [
   { label: "Closed", value: "closed" },
 ];
 
-const MY_REFERRALS = REFERRALS.filter((r) => r.partnerId === "marylebone-independent-opticians");
-
 export default function PartnerReferralsPage() {
   const { showToast } = useToast();
+  const { referrals } = useReferrals();
   const [status, setStatus] = useState<string>("all");
   const [search, setSearch] = useState("");
   const [pathway, setPathway] = useState("all");
 
   const filtered = useMemo(() => {
-    return MY_REFERRALS.filter((r) => {
+    return referrals.filter((r) => {
       if (status !== "all" && r.stage !== status) return false;
       if (pathway !== "all" && r.pathwayId !== pathway) return false;
       if (search && !`${r.patientLabel} ${r.reference}`.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     });
-  }, [status, pathway, search]);
+  }, [referrals, status, pathway, search]);
 
   return (
     <div className="flex flex-col gap-6">
