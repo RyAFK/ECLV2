@@ -8,13 +8,12 @@ import { Modal } from "@/components/ui/Modal";
 import { Field, Input, Select, Textarea } from "@/components/ui/Field";
 import { PriorityBadge } from "@/components/referrals/StatusBadge";
 import { useToast } from "@/components/ui/Toast";
-import { useLocalStorageState } from "@/lib/demo-storage";
-import { TASKS } from "@/data/tasks";
+import { useTasks } from "@/lib/supabase/hooks";
 import type { TaskItem } from "@/lib/types";
 
 export default function TasksPage() {
   const { showToast } = useToast();
-  const [tasks, setTasks] = useLocalStorageState<TaskItem[]>("clinic-tasks", TASKS);
+  const { tasks, toggleComplete: toggleTaskComplete, removeTask: removeTaskById, createTask: createTaskRemote } = useTasks();
   const [createOpen, setCreateOpen] = useState(false);
   const [newTask, setNewTask] = useState({ title: "", reason: "", due: "", priority: "Medium" as TaskItem["priority"], partnerName: "" });
 
@@ -24,27 +23,18 @@ export default function TasksPage() {
   const completed = tasks.filter((t) => t.completed);
 
   function toggleComplete(id: string) {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed: !t.completed } : t)));
+    const task = tasks.find((t) => t.id === id);
+    if (task) toggleTaskComplete(id, !task.completed);
   }
 
   function removeTask(id: string) {
-    setTasks((prev) => prev.filter((t) => t.id !== id));
+    removeTaskById(id);
     showToast({ variant: "info", title: "Task deleted" });
   }
 
-  function createTask() {
+  async function createTask() {
     if (!newTask.title.trim()) return;
-    const task: TaskItem = {
-      id: `task-${Date.now()}`,
-      title: newTask.title,
-      reason: newTask.reason,
-      due: newTask.due || "Today",
-      dueSort: 0,
-      priority: newTask.priority,
-      partnerName: newTask.partnerName,
-      completed: false,
-    };
-    setTasks((prev) => [task, ...prev]);
+    await createTaskRemote(newTask);
     setCreateOpen(false);
     setNewTask({ title: "", reason: "", due: "", priority: "Medium", partnerName: "" });
     showToast({ variant: "success", title: "Task created" });

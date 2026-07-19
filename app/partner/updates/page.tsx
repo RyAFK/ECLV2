@@ -3,14 +3,16 @@
 import { useMemo, useState } from "react";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Badge } from "@/components/ui/Badge";
-import { UPDATES, UPDATE_CATEGORIES } from "@/data/updates";
+import { UPDATE_CATEGORIES } from "@/data/updates";
+import { useUpdates } from "@/lib/supabase/hooks";
 import { formatDate } from "@/lib/formatters";
 
 export default function UpdatesPage() {
+  const { updates } = useUpdates();
   const [category, setCategory] = useState("All");
   const filtered = useMemo(
-    () => (category === "All" ? UPDATES : UPDATES.filter((u) => u.category === category)),
-    [category]
+    () => (category === "All" ? updates : updates.filter((u) => u.category === category)),
+    [updates, category]
   );
 
   return (

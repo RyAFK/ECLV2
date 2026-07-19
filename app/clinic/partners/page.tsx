@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { Search } from "lucide-react";
-import { PARTNERS } from "@/data/partners";
+import { usePartners } from "@/lib/supabase/hooks";
 import { Table, THead, TH, TBody, TR, TD } from "@/components/tables/Table";
 import { Tabs } from "@/components/ui/Tabs";
 import { Input, Select } from "@/components/ui/Field";
@@ -14,12 +14,13 @@ import { formatCurrency, formatPercent, daysAgoLabel } from "@/lib/formatters";
 const CATEGORIES = ["All", "Independent optometry", "Optometry group", "Private GP", "Corporate healthcare", "Ophthalmology"];
 
 export default function ClinicPartnersPage() {
+  const { partners } = usePartners();
   const [view, setView] = useState("all");
   const [category, setCategory] = useState("All");
   const [search, setSearch] = useState("");
 
   const filtered = useMemo(() => {
-    return PARTNERS.filter((p) => {
+    return partners.filter((p) => {
       if (view === "dormant" && p.relationshipStatus !== "Dormant" && p.relationshipStatus !== "At risk") return false;
       if (view === "new" && p.relationshipStatus !== "New") return false;
       if (view === "strategic" && p.relationshipStatus !== "Strategic") return false;
@@ -27,7 +28,7 @@ export default function ClinicPartnersPage() {
       if (search && !p.name.toLowerCase().includes(search.toLowerCase())) return false;
       return true;
     }).sort((a, b) => b.referrals - a.referrals);
-  }, [view, category, search]);
+  }, [partners, view, category, search]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -38,10 +39,10 @@ export default function ClinicPartnersPage() {
 
       <Tabs
         tabs={[
-          { label: "All partners", value: "all", count: PARTNERS.length },
-          { label: "Strategic", value: "strategic", count: PARTNERS.filter((p) => p.relationshipStatus === "Strategic").length },
-          { label: "New", value: "new", count: PARTNERS.filter((p) => p.relationshipStatus === "New").length },
-          { label: "Dormant / at risk", value: "dormant", count: PARTNERS.filter((p) => ["Dormant", "At risk"].includes(p.relationshipStatus)).length },
+          { label: "All partners", value: "all", count: partners.length },
+          { label: "Strategic", value: "strategic", count: partners.filter((p) => p.relationshipStatus === "Strategic").length },
+          { label: "New", value: "new", count: partners.filter((p) => p.relationshipStatus === "New").length },
+          { label: "Dormant / at risk", value: "dormant", count: partners.filter((p) => ["Dormant", "At risk"].includes(p.relationshipStatus)).length },
         ]}
         active={view}
         onChange={setView}

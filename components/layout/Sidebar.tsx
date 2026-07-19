@@ -6,6 +6,7 @@ import { LogOut } from "lucide-react";
 import { ECLLogoPlaceholder } from "@/components/branding/ECLLogoPlaceholder";
 import { NavIcon } from "@/components/navigation/NavIcon";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/lib/supabase/auth-context";
 
 interface NavItem {
   label: string;
@@ -24,6 +25,7 @@ export function Sidebar({
   footerLabel: string;
 }) {
   const pathname = usePathname();
+  const { signOut } = useAuth();
 
   return (
     <aside className="hidden w-64 shrink-0 flex-col bg-[var(--sidebar)] text-white lg:flex">
@@ -65,6 +67,7 @@ export function Sidebar({
       <div className="border-t border-white/10 p-4">
         <Link
           href="/login"
+          onClick={() => void signOut()}
           className="flex items-center gap-2.5 rounded-xl px-3.5 py-2.5 text-sm font-medium text-white/60 transition hover:bg-white/5 hover:text-white"
         >
           <LogOut className="h-4.5 w-4.5" aria-hidden="true" />
