@@ -81,12 +81,15 @@ export type PartnerRow = {
 }
 
 export type ProfileRow = {
-  id: string;
-  role: PortalRole;
+  user_id: string;
+  portal_role: PortalRole;
   partner_id: string | null;
-  full_name: string;
+  display_name: string;
   email: string;
-  phone: string | null;
+  contact_number: string;
+  practice_name: string;
+  professional_role: string;
+  onboarding_complete: boolean;
   location: string | null;
   member_since: string;
   greeting_name: string | null;
@@ -149,7 +152,7 @@ export type UpdateRow = {
 
 export type NotificationRow = {
   id: string;
-  recipient_id: string;
+  recipient_user_id: string;
   message: string;
   category: string;
   is_read: boolean;
@@ -232,7 +235,7 @@ export type EclV2Database = {
             columns: ["assigned_to"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
+            referencedColumns: ["user_id"];
           },
         ];
       };
@@ -244,17 +247,46 @@ export type EclV2Database = {
         Relationships: [
           {
             foreignKeyName: "notifications_recipient_id_fkey";
-            columns: ["recipient_id"];
+            columns: ["recipient_user_id"];
             isOneToOne: false;
             referencedRelation: "profiles";
-            referencedColumns: ["id"];
+            referencedColumns: ["user_id"];
           },
         ];
       };
       sync_runs: { Row: SyncRunRow; Insert: Partial<SyncRunRow>; Update: Partial<SyncRunRow>; Relationships: Relationship[] };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      complete_partner_onboarding: {
+        Args: {
+          p_display_name: string;
+          p_practice_name: string;
+          p_professional_role: string;
+          p_contact_number: string;
+        };
+        Returns: ProfileRow;
+      };
+      update_my_partner_profile: {
+        Args: {
+          p_display_name: string;
+          p_practice_name: string;
+          p_professional_role: string;
+          p_contact_number: string;
+        };
+        Returns: ProfileRow;
+      };
+      admin_update_partner_profile: {
+        Args: {
+          p_target_partner_id: string;
+          p_display_name: string;
+          p_practice_name: string;
+          p_professional_role: string;
+          p_contact_number: string;
+        };
+        Returns: ProfileRow;
+      };
+    };
     Enums: Record<string, never>;
   };
 }

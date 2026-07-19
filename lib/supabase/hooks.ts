@@ -17,12 +17,17 @@ import { UPDATES } from "@/data/updates";
 import { NOTIFICATIONS } from "@/data/notifications";
 import { useAuth } from "./auth-context";
 
-export type DataSource = "supabase" | "mock";
+/**
+ * "mock" only ever means "Supabase isn't configured" (local dev without env
+ * vars). Once Supabase is configured, an authenticated session always sees
+ * real data - an empty result is "supabase" with zero rows, and a failed
+ * query is "error", never a silent switch to the shared mock dataset.
+ */
+export type DataSource = "supabase" | "mock" | "error";
 
 /**
- * Fetches `eclv2.partners`, subscribes to Realtime changes, and falls back to
- * the local mock dataset when Supabase isn't configured or currently has no
- * rows (e.g. a fresh project before the first sync run).
+ * Fetches `eclv2.partners` and subscribes to Realtime changes. Falls back to
+ * the local mock dataset only when Supabase itself isn't configured.
  */
 export function usePartners() {
   const [partners, setPartners] = useState<Partner[]>([]);
@@ -38,12 +43,12 @@ export function usePartners() {
       return;
     }
     const { data, error } = await supabase.from("partners").select("*").order("name");
-    if (error || !data || data.length === 0) {
-      if (error) console.warn("Supabase partners query failed, falling back to mock data:", error.message);
-      setPartners(PARTNERS);
-      setSource("mock");
+    if (error) {
+      console.warn("Supabase partners query failed:", error.message);
+      setPartners([]);
+      setSource("error");
     } else {
-      setPartners(data.map(partnerRowToPartner));
+      setPartners((data ?? []).map(partnerRowToPartner));
       setSource("supabase");
     }
     setLoading(false);
@@ -67,9 +72,9 @@ export function usePartners() {
 }
 
 /**
- * Fetches `eclv2.referrals` (joined to partner name), subscribes to Realtime,
- * and falls back to mock data when Supabase is unavailable or empty. RLS
- * already scopes the returned rows to the caller's role/partner.
+ * Fetches `eclv2.referrals` (joined to partner name) and subscribes to
+ * Realtime. RLS scopes the returned rows to the caller's role/partner; falls
+ * back to mock data only when Supabase isn't configured.
  */
 export function useReferrals() {
   const [referrals, setReferrals] = useState<Referral[]>([]);
@@ -88,12 +93,12 @@ export function useReferrals() {
       .from("referrals")
       .select("*, partners(name)")
       .order("referral_date", { ascending: false });
-    if (error || !data || data.length === 0) {
-      if (error) console.warn("Supabase referrals query failed, falling back to mock data:", error.message);
-      setReferrals(REFERRALS);
-      setSource("mock");
+    if (error) {
+      console.warn("Supabase referrals query failed:", error.message);
+      setReferrals([]);
+      setSource("error");
     } else {
-      setReferrals(data.map((row) => referralRowToReferral(row, row.partners?.name ?? "")));
+      setReferrals((data ?? []).map((row) => referralRowToReferral(row, row.partners?.name ?? "")));
       setSource("supabase");
     }
     setLoading(false);
@@ -116,7 +121,7 @@ export function useReferrals() {
   const updateStage = useCallback(
     async (id: string, stage: ReferralStage) => {
       const supabase = getSupabaseClient();
-      if (!supabase || source !== "supabase") {
+      if (!supabase || source === "mock") {
         setReferrals((prev) => prev.map((r) => (r.id === id ? { ...r, stage, lastUpdate: new Date().toISOString().slice(0, 10) } : r)));
         return { error: null };
       }
@@ -133,7 +138,7 @@ export function useReferrals() {
   return { referrals, source, loading, updateStage };
 }
 
-/** Fetches `eclv2.tasks` (clinic/executive only per RLS), subscribes to Realtime, falls back to mock. */
+/** Fetches `eclv2.tasks` (clinic/executive only per RLS) and subscribes to Realtime. Mock only when unconfigured. */
 export function useTasks() {
   const [tasks, setTasks] = useState<TaskItem[]>([]);
   const [source, setSource] = useState<DataSource>("mock");
@@ -148,12 +153,12 @@ export function useTasks() {
       return;
     }
     const { data, error } = await supabase.from("tasks").select("*").order("due_date", { ascending: true });
-    if (error || !data || data.length === 0) {
-      if (error) console.warn("Supabase tasks query failed, falling back to mock data:", error.message);
-      setTasks(TASKS);
-      setSource("mock");
+    if (error) {
+      console.warn("Supabase tasks query failed:", error.message);
+      setTasks([]);
+      setSource("error");
     } else {
-      setTasks(data.map(taskRowToTask));
+      setTasks((data ?? []).map(taskRowToTask));
       setSource("supabase");
     }
     setLoading(false);
@@ -176,7 +181,7 @@ export function useTasks() {
   const toggleComplete = useCallback(
     async (id: string, completed: boolean) => {
       const supabase = getSupabaseClient();
-      if (!supabase || source !== "supabase") {
+      if (!supabase || source === "mock") {
         setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, completed } : t)));
         return;
       }
@@ -189,7 +194,7 @@ export function useTasks() {
   const removeTask = useCallback(
     async (id: string) => {
       const supabase = getSupabaseClient();
-      if (!supabase || source !== "supabase") {
+      if (!supabase || source === "mock") {
         setTasks((prev) => prev.filter((t) => t.id !== id));
         return;
       }
@@ -202,7 +207,7 @@ export function useTasks() {
   const createTask = useCallback(
     async (task: { title: string; reason: string; due: string; priority: TaskItem["priority"]; partnerName: string }) => {
       const supabase = getSupabaseClient();
-      if (!supabase || source !== "supabase") {
+      if (!supabase || source === "mock") {
         setTasks((prev) => [
           { id: `task-${Date.now()}`, title: task.title, reason: task.reason, due: task.due || "Today", dueSort: 0, priority: task.priority, partnerName: task.partnerName, completed: false },
           ...prev,
@@ -223,7 +228,7 @@ export function useTasks() {
   return { tasks, source, loading, toggleComplete, removeTask, createTask };
 }
 
-/** Fetches `eclv2.updates`, subscribes to Realtime, falls back to mock. */
+/** Fetches `eclv2.updates` and subscribes to Realtime. Mock only when unconfigured. */
 export function useUpdates() {
   const [updates, setUpdates] = useState<UpdateItem[]>([]);
   const [source, setSource] = useState<DataSource>("mock");
@@ -238,12 +243,12 @@ export function useUpdates() {
       return;
     }
     const { data, error } = await supabase.from("updates").select("*").order("publish_date", { ascending: false });
-    if (error || !data || data.length === 0) {
-      if (error) console.warn("Supabase updates query failed, falling back to mock data:", error.message);
-      setUpdates(UPDATES);
-      setSource("mock");
+    if (error) {
+      console.warn("Supabase updates query failed:", error.message);
+      setUpdates([]);
+      setSource("error");
     } else {
-      setUpdates(data.map(updateRowToUpdate));
+      setUpdates((data ?? []).map(updateRowToUpdate));
       setSource("supabase");
     }
     setLoading(false);
@@ -269,7 +274,7 @@ export function useUpdates() {
 /**
  * Fetches the signed-in user's own `eclv2.notifications` and subscribes to
  * Realtime. Falls back to the local mock feed (with client-side read/dismiss
- * state) when Supabase isn't configured or the user has no notifications yet.
+ * state) only when Supabase isn't configured or there is no signed-in user.
  */
 export function useNotifications() {
   const { isConfigured, user } = useAuth();
@@ -288,14 +293,14 @@ export function useNotifications() {
     const { data, error } = await supabase
       .from("notifications")
       .select("*")
-      .eq("recipient_id", user.id)
+      .eq("recipient_user_id", user.id)
       .order("created_at", { ascending: false });
-    if (error || !data || data.length === 0) {
-      if (error) console.warn("Supabase notifications query failed, falling back to mock data:", error.message);
-      setNotifications(NOTIFICATIONS);
-      setSource("mock");
+    if (error) {
+      console.warn("Supabase notifications query failed:", error.message);
+      setNotifications([]);
+      setSource("error");
     } else {
-      setNotifications(data.map(notificationRowToNotification));
+      setNotifications((data ?? []).map(notificationRowToNotification));
       setSource("supabase");
     }
     setLoading(false);
@@ -310,7 +315,7 @@ export function useNotifications() {
       .channel(`eclv2-notifications-${user.id}`)
       .on(
         "postgres_changes",
-        { event: "*", schema: "eclv2", table: "notifications", filter: `recipient_id=eq.${user.id}` },
+        { event: "*", schema: "eclv2", table: "notifications", filter: `recipient_user_id=eq.${user.id}` },
         () => load()
       )
       .subscribe();
@@ -322,7 +327,7 @@ export function useNotifications() {
   const markRead = useCallback(
     async (id: string) => {
       const supabase = getSupabaseClient();
-      if (!supabase || source !== "supabase") {
+      if (!supabase || source === "mock") {
         setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, read: true } : n)));
         return;
       }
@@ -335,7 +340,7 @@ export function useNotifications() {
   const markAllRead = useCallback(
     async (ids: string[]) => {
       const supabase = getSupabaseClient();
-      if (!supabase || source !== "supabase" || !user) {
+      if (!supabase || source === "mock" || !user) {
         setNotifications((prev) => prev.map((n) => (ids.includes(n.id) ? { ...n, read: true } : n)));
         return;
       }

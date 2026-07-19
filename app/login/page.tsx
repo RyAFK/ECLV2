@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { BarChart3, CheckCircle2, ClipboardCheck, Link2, Stethoscope, Users } from "lucide-react";
+import Link from "next/link";
+import { ArrowRight, BarChart3, CheckCircle2, ClipboardCheck, Link2, Stethoscope, Users } from "lucide-react";
 import { ECLLogoPlaceholder } from "@/components/branding/ECLLogoPlaceholder";
 import { OpticalMotif } from "@/components/branding/OpticalMotif";
 import { LOGIN_DISCLAIMER } from "@/lib/constants";
@@ -58,7 +59,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user && profile) {
-      router.push(ROLE_HOME[profile.role] ?? "/login");
+      router.push(ROLE_HOME[profile.portal_role] ?? "/login");
     }
   }, [user, profile, router]);
 
@@ -119,8 +120,31 @@ export default function LoginPage() {
 
           {isConfigured ? (
             <>
-              <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Sign in to your ECL Connect account.</p>
-              <form onSubmit={handleSubmit} className="mt-7 flex flex-col gap-3">
+              <p className="mt-1.5 text-sm text-[var(--text-secondary)]">Choose how you&rsquo;d like to sign in.</p>
+
+              <Link
+                href="/login/partner"
+                className="group relative mt-7 flex items-center gap-4 overflow-hidden rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 text-left shadow-sm transition hover:border-[var(--accent)] hover:shadow-md"
+              >
+                <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[var(--accent-soft)] text-[var(--accent)]">
+                  <Stethoscope className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block font-serif-display text-base font-semibold text-[var(--text)]">Referring Partner Demo</span>
+                  <span className="mt-0.5 block text-sm text-[var(--text-secondary)]">
+                    Sign in with your email — we&rsquo;ll send you a one-time code, no password needed.
+                  </span>
+                </span>
+                <ArrowRight className="h-5 w-5 shrink-0 text-[var(--border)] transition group-hover:text-[var(--accent)]" />
+              </Link>
+
+              <div className="mt-6 flex items-center gap-3 text-xs font-medium uppercase tracking-wide text-[var(--text-secondary)]">
+                <span className="h-px flex-1 bg-[var(--border)]" />
+                Clinic &amp; executive sign-in
+                <span className="h-px flex-1 bg-[var(--border)]" />
+              </div>
+
+              <form onSubmit={handleSubmit} className="mt-4 flex flex-col gap-3">
                 <Input
                   type="email"
                   placeholder="Email address"
@@ -145,11 +169,11 @@ export default function LoginPage() {
               <details className="mt-6 rounded-xl bg-[var(--surface-soft)] p-4 text-xs text-[var(--text-secondary)]">
                 <summary className="cursor-pointer font-medium text-[var(--text)]">Demo accounts</summary>
                 <ul className="mt-2 space-y-1">
-                  <li>Partner: priya.shah@example-opticians.co.uk</li>
-                  <li>Clinic: ryan@eyecliniclondon.com</li>
-                  <li>Executive: executive@eyecliniclondon.com</li>
+                  <li>Partner (OTP): priya.shah@example-opticians.co.uk</li>
+                  <li>Clinic (password): ryan@eyecliniclondon.com</li>
+                  <li>Executive (password): executive@eyecliniclondon.com</li>
                 </ul>
-                <p className="mt-2">Password: Demo-Passw0rd! (rotate before real use)</p>
+                <p className="mt-2">Clinic/executive password: Demo-Passw0rd! (rotate before real use)</p>
               </details>
             </>
           ) : (

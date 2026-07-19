@@ -12,8 +12,8 @@ import { useAuth } from "@/lib/supabase/auth-context";
 
 export function PartnerShell({ children }: { children: React.ReactNode }) {
   const { profile } = useAuth();
-  const userName = profile?.full_name || PARTNER_DEMO_USER.name;
-  const userRole = profile ? "Referring partner" : PARTNER_DEMO_USER.role;
+  const userName = profile?.display_name || PARTNER_DEMO_USER.name;
+  const userRole = profile ? profile.professional_role || "Referring partner" : PARTNER_DEMO_USER.role;
 
   return (
     <div className="flex min-h-screen bg-[var(--background)]">

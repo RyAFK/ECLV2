@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { getSupabaseClient, isSupabaseConfigured } from "./client";
 import type { ProfileRow } from "./database.types";
@@ -12,6 +12,12 @@ interface AuthState {
   profile: ProfileRow | null;
   signIn: (email: string, password: string) => Promise<{ error: string | null }>;
   signUp: (email: string, password: string, fullName: string) => Promise<{ error: string | null }>;
+  /** Sends a one-time numeric code to `email` (referring-partner passwordless sign-in). */
+  sendPartnerOtp: (email: string) => Promise<{ error: string | null }>;
+  /** Verifies the numeric code sent by sendPartnerOtp and establishes a session. */
+  verifyPartnerOtp: (email: string, token: string) => Promise<{ error: string | null }>;
+  /** Re-fetches the current user's profile row (e.g. right after onboarding completes). */
+  refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -21,6 +27,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<ProfileRow | null>(null);
   const [loading, setLoading] = useState(isSupabaseConfigured);
+  const userRef = useRef<User | null>(null);
+  useEffect(() => {
+    userRef.current = user;
+  }, [user]);
 
   useEffect(() => {
     const supabase = getSupabaseClient();
@@ -37,7 +47,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         if (!cancelled) setProfile(null);
         return;
       }
-      const { data } = await supabase!.from("profiles").select("*").eq("id", currentUser.id).maybeSingle();
+      const { data } = await supabase!.from("profiles").select("*").eq("user_id", currentUser.id).maybeSingle();
       if (!cancelled) setProfile((data as ProfileRow) ?? null);
     }
 
@@ -81,6 +91,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           options: { data: { role: "partner", full_name: fullName } },
         });
         return { error: error?.message ?? null };
+      },
+      async sendPartnerOtp(email) {
+        const supabase = getSupabaseClient();
+        if (!supabase) return { error: "Supabase is not configured." };
+        const { error } = await supabase.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: true },
+        });
+        return { error: error?.message ?? null };
+      },
+      async verifyPartnerOtp(email, token) {
+        const supabase = getSupabaseClient();
+        if (!supabase) return { error: "Supabase is not configured." };
+        const { error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+        return { error: error?.message ?? null };
+      },
+      async refreshProfile() {
+        const supabase = getSupabaseClient();
+        const currentUser = userRef.current;
+        if (!supabase || !currentUser) return;
+        const { data } = await supabase.from("profiles").select("*").eq("user_id", currentUser.id).maybeSingle();
+        setProfile((data as ProfileRow) ?? null);
       },
       async signOut() {
         const supabase = getSupabaseClient();

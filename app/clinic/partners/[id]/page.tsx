@@ -1,14 +1,16 @@
 "use client";
 
-import { use } from "react";
+import { use, useEffect, useMemo, useState } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Phone, Mail, CalendarClock, ClipboardList, Share2 } from "lucide-react";
+import { ArrowLeft, Phone, Mail, CalendarClock, ClipboardList, Share2, Pencil } from "lucide-react";
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { PARTNERS } from "@/data/partners";
-import { REFERRALS } from "@/data/referrals";
+import { usePartners, useReferrals } from "@/lib/supabase/hooks";
+import { getSupabaseClient } from "@/lib/supabase/client";
 import { Card, CardBody } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
+import { Modal } from "@/components/ui/Modal";
+import { Field, Input } from "@/components/ui/Field";
 import { RelationshipStatusBadge } from "@/components/referrals/StatusBadge";
 import { InsightCard } from "@/components/dashboard/InsightCard";
 import { tooltipContent } from "@/components/charts/ChartTooltip";
@@ -29,17 +31,102 @@ const RECENT_ACTIVITY = [
   "Patient leaflet request received",
 ];
 
+interface LinkedProfile {
+  display_name: string;
+  professional_role: string;
+  contact_number: string;
+  email: string;
+}
+
 export default function PartnerProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const partner = PARTNERS.find((p) => p.id === id);
+  const { partners, loading: partnersLoading } = usePartners();
+  const { referrals } = useReferrals();
   const { showToast } = useToast();
+
+  const partner = useMemo(() => partners.find((p) => p.id === id), [partners, id]);
+  const partnerReferrals = useMemo(() => referrals.filter((r) => r.partnerId === id), [referrals, id]);
+
+  const [linkedProfile, setLinkedProfile] = useState<LinkedProfile | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
+  const [form, setForm] = useState({ displayName: "", practiceName: "", professionalRole: "", contactNumber: "" });
+  const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function loadProfile() {
+      const supabase = getSupabaseClient();
+      if (!supabase) return;
+      const { data } = await supabase
+        .from("profiles")
+        .select("display_name, professional_role, contact_number, email")
+        .eq("partner_id", id)
+        .eq("portal_role", "partner")
+        .maybeSingle();
+      if (!cancelled) setLinkedProfile(data as LinkedProfile | null);
+    }
+    loadProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  if (partnersLoading && !partner) {
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center">
+        <span className="h-8 w-8 animate-spin rounded-full border-2 border-[var(--accent)] border-t-transparent" />
+      </div>
+    );
+  }
+
   if (!partner) notFound();
 
-  const partnerReferrals = REFERRALS.filter((r) => r.partnerId === partner.id);
   const trendData = MONTHLY_REFERRAL_TREND.map((m, i) => ({ month: m.month, referrals: Math.max(0, Math.round(partner.referrals * (0.4 + i * 0.1))) }));
 
   function simulate(title: string, description: string) {
     showToast({ variant: "success", title, description });
+  }
+
+  function openEdit() {
+    setForm({
+      displayName: linkedProfile?.display_name ?? partner!.professional,
+      practiceName: partner!.name,
+      professionalRole: linkedProfile?.professional_role ?? partner!.role,
+      contactNumber: linkedProfile?.contact_number ?? "",
+    });
+    setFormError(null);
+    setEditOpen(true);
+  }
+
+  async function handleSave() {
+    const supabase = getSupabaseClient();
+    if (!supabase) {
+      setFormError("Supabase is not configured.");
+      return;
+    }
+    setSaving(true);
+    setFormError(null);
+    const { error } = await supabase.rpc("admin_update_partner_profile", {
+      p_target_partner_id: id,
+      p_display_name: form.displayName,
+      p_practice_name: form.practiceName,
+      p_professional_role: form.professionalRole,
+      p_contact_number: form.contactNumber,
+    });
+    setSaving(false);
+    if (error) {
+      setFormError(error.message);
+      return;
+    }
+    setLinkedProfile({
+      display_name: form.displayName,
+      professional_role: form.professionalRole,
+      contact_number: form.contactNumber,
+      email: linkedProfile?.email ?? "",
+    });
+    setEditOpen(false);
+    showToast({ variant: "success", title: "Partner profile updated" });
   }
 
   return (
@@ -62,6 +149,12 @@ export default function PartnerProfilePage({ params }: { params: Promise<{ id: s
           <p className="mt-1 text-xs text-[var(--text-secondary)]">Relationship owner: {partner.owner}</p>
         </div>
         <div className="flex flex-wrap gap-2">
+          {linkedProfile && (
+            <Button variant="outline" size="sm" onClick={openEdit}>
+              <Pencil className="h-4 w-4" />
+              Edit profile
+            </Button>
+          )}
           <Button variant="outline" size="sm" onClick={() => simulate("Task created", `A follow-up task has been created for ${partner.name}.`)}>
             <ClipboardList className="h-4 w-4" />
             Create task
@@ -84,6 +177,28 @@ export default function PartnerProfilePage({ params }: { params: Promise<{ id: s
           </Button>
         </div>
       </div>
+
+      {linkedProfile && (
+        <Card>
+          <CardBody>
+            <p className="font-serif-display text-lg font-semibold text-[var(--text)]">Linked partner account</p>
+            <dl className="mt-3 grid grid-cols-1 gap-4 sm:grid-cols-3">
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-[var(--text-secondary)]">Full name</dt>
+                <dd className="mt-1 text-sm font-medium text-[var(--text)]">{linkedProfile.display_name}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-[var(--text-secondary)]">Email (read-only)</dt>
+                <dd className="mt-1 text-sm font-medium text-[var(--text)]">{linkedProfile.email}</dd>
+              </div>
+              <div>
+                <dt className="text-xs uppercase tracking-wide text-[var(--text-secondary)]">Contact number</dt>
+                <dd className="mt-1 text-sm font-medium text-[var(--text)]">{linkedProfile.contact_number || "—"}</dd>
+              </div>
+            </dl>
+          </CardBody>
+        </Card>
+      )}
 
       <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
         <Stat label="Referrals" value={String(partner.referrals)} />
@@ -189,6 +304,35 @@ export default function PartnerProfilePage({ params }: { params: Promise<{ id: s
           </Table>
         )}
       </div>
+
+      <Modal open={editOpen} onClose={() => setEditOpen(false)} title="Edit partner profile" description={partner.name}>
+        <div className="flex flex-col gap-4">
+          <Field label="Full name" htmlFor="admin-edit-name" required>
+            <Input id="admin-edit-name" value={form.displayName} onChange={(e) => setForm({ ...form, displayName: e.target.value })} />
+          </Field>
+          <Field label="Email address" htmlFor="admin-edit-email" hint="Read-only — email changes require a separate verified workflow">
+            <Input id="admin-edit-email" value={linkedProfile?.email ?? ""} disabled readOnly />
+          </Field>
+          <Field label="Practice name" htmlFor="admin-edit-practice" required>
+            <Input id="admin-edit-practice" value={form.practiceName} onChange={(e) => setForm({ ...form, practiceName: e.target.value })} />
+          </Field>
+          <Field label="Professional role" htmlFor="admin-edit-role" required>
+            <Input id="admin-edit-role" value={form.professionalRole} onChange={(e) => setForm({ ...form, professionalRole: e.target.value })} />
+          </Field>
+          <Field label="Contact number" htmlFor="admin-edit-contact" required>
+            <Input id="admin-edit-contact" value={form.contactNumber} onChange={(e) => setForm({ ...form, contactNumber: e.target.value })} />
+          </Field>
+          {formError && <p className="text-sm text-[var(--danger)]">{formError}</p>}
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setEditOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSave} disabled={saving}>
+              {saving ? "Saving…" : "Save changes"}
+            </Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   );
 }

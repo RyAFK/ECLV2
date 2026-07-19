@@ -10,7 +10,7 @@ import { useAuth } from "@/lib/supabase/auth-context";
 
 export function ExecutiveShell({ children }: { children: React.ReactNode }) {
   const { profile, signOut } = useAuth();
-  const userName = profile?.full_name || EXECUTIVE_DEMO_USER.name;
+  const userName = profile?.display_name || EXECUTIVE_DEMO_USER.name;
   const userRole = profile ? "Executive" : EXECUTIVE_DEMO_USER.role;
 
   return (

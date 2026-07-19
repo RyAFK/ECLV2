@@ -10,8 +10,8 @@ import { useAuth } from "@/lib/supabase/auth-context";
 
 export function ClinicShell({ children }: { children: React.ReactNode }) {
   const { profile } = useAuth();
-  const userName = profile?.full_name || CLINIC_DEMO_USER.name;
-  const userRole = profile ? (profile.role === "executive" ? "Executive" : "Clinic team") : "Business Development Manager";
+  const userName = profile?.display_name || CLINIC_DEMO_USER.name;
+  const userRole = profile ? (profile.portal_role === "executive" ? "Executive" : "Clinic team") : "Business Development Manager";
 
   return (
     <div className="flex min-h-screen bg-[var(--background)]">
