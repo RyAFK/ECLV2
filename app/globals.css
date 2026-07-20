@@ -126,15 +126,14 @@ body {
   animation: eclRing 1.8s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
 }
 
-@keyframes eclOrbPulse {
-  0%,
-  100% {
-    filter: brightness(1);
+@keyframes eclSpinClockwise {
+  from {
+    transform: rotate(0deg);
   }
-  50% {
-    filter: brightness(1.06);
+  to {
+    transform: rotate(360deg);
   }
 }
-.animate-ecl-orb-pulse {
-  animation: eclOrbPulse 2.4s ease-in-out infinite;
+.animate-ecl-spin {
+  animation: eclSpinClockwise 9s linear infinite;
 }

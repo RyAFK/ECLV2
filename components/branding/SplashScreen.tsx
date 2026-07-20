@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { SplashFan } from "@/components/branding/SplashFan";
 
-const MIN_DISPLAY_MS = 1200;
+const MIN_DISPLAY_MS = 2500;
 const FADE_MS = 550;
 
 /**
@@ -48,14 +49,7 @@ export function SplashScreen() {
               background: "radial-gradient(circle, rgba(240,198,106,0.45) 0%, rgba(217,165,62,0.22) 40%, rgba(217,165,62,0) 72%)",
             }}
           />
-          <div
-            className="animate-ecl-orb-pulse relative h-full w-full rounded-full"
-            style={{
-              background:
-                "radial-gradient(circle at 34% 28%, #fdf3d9 0%, #f7dd9e 8%, #f0c66a 22%, #d9a53e 45%, #b3821f 68%, #7a5a16 92%)",
-              boxShadow: "0 0 90px 10px rgba(217,165,62,0.35), inset -18px -22px 50px rgba(0,0,0,0.35), inset 10px 12px 30px rgba(255,247,224,0.25)",
-            }}
-          />
+          <SplashFan className="animate-ecl-spin relative h-full w-full drop-shadow-[0_0_28px_rgba(217,165,62,0.45)]" />
         </div>
 
         <p className="mt-10 font-mono text-xs font-medium uppercase tracking-[0.35em] text-[#c9a35f]">ECL Connect</p>
