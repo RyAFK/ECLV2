@@ -126,38 +126,14 @@ body {
   animation: eclRing 1.8s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
 }
 
-@keyframes eclWheelToOrb {
-  0% {
-    transform: rotate(0deg) scale(1);
-    opacity: 1;
+@keyframes eclSpinClockwise {
+  from {
+    transform: rotate(0deg);
   }
-  70% {
-    transform: rotate(820deg) scale(1);
-    opacity: 1;
-  }
-  100% {
-    transform: rotate(940deg) scale(0.25);
-    opacity: 0;
+  to {
+    transform: rotate(360deg);
   }
 }
-.animate-ecl-wheel-to-orb {
-  animation: eclWheelToOrb 2.3s cubic-bezier(0.5, 0, 0.25, 1) forwards;
-}
-
-@keyframes eclOrbBloom {
-  0% {
-    transform: scale(0.35);
-    opacity: 0;
-  }
-  65% {
-    transform: scale(0.8);
-    opacity: 0.35;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 0.9;
-  }
-}
-.animate-ecl-orb-bloom {
-  animation: eclOrbBloom 2.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+.animate-ecl-spin {
+  animation: eclSpinClockwise 9s linear infinite;
 }
