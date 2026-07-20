@@ -44,12 +44,12 @@ export function SplashScreen() {
       >
         <div className="relative flex h-[clamp(220px,32vw,380px)] w-[clamp(220px,32vw,380px)] items-center justify-center">
           <div
-            className="absolute inset-[-40%] rounded-full opacity-70 blur-3xl"
+            className="animate-ecl-orb-bloom absolute inset-[-40%] rounded-full blur-3xl"
             style={{
               background: "radial-gradient(circle, rgba(240,198,106,0.45) 0%, rgba(217,165,62,0.22) 40%, rgba(217,165,62,0) 72%)",
             }}
           />
-          <SplashFan className="animate-ecl-spin relative h-full w-full drop-shadow-[0_0_28px_rgba(217,165,62,0.45)]" />
+          <SplashFan className="animate-ecl-wheel-to-orb relative h-full w-full drop-shadow-[0_0_28px_rgba(217,165,62,0.45)]" />
         </div>
 
         <p className="mt-10 font-mono text-xs font-medium uppercase tracking-[0.35em] text-[#c9a35f]">ECL Connect</p>
